@@ -1,0 +1,37 @@
+name: Update data
+
+on:
+  schedule:
+    # 16:00 UTC = 00:00 (tengah malam) waktu Malaysia (UTC+8)
+    - cron: "0 16 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Jalankan script kemaskini data
+        run: python3 scripts/update_data.py
+
+      - name: Commit & push jika ada perubahan
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/latest.json
+          if git diff --staged --quiet; then
+            echo "Tiada perubahan data."
+          else
+            git commit -m "Auto-update data langkah $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi

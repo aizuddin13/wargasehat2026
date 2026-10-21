@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Warga Sehat 2026</title>
+<style>
+  :root {
+    --bg: #0f1720;
+    --panel: #171f2a;
+    --panel-2: #1c2531;
+    --border: #2a3444;
+    --text: #e8edf4;
+    --text-dim: #93a0b3;
+    --accent: #3ddc97;
+    --accent-2: #5b8def;
+    --gold: #f4c430;
+    --silver: #c7d0dc;
+    --bronze: #d98c4a;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 20% -10%, #16324a33, transparent),
+                var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    padding: 20px 16px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 28px; }
+  header h1 {
+    font-size: 1.8rem;
+    margin: 0 0 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p { margin: 2px 0; color: var(--text-dim); font-size: 0.9rem; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dept-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .dept-row:last-child { border-bottom: none; }
+  .rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    background: var(--panel-2);
+    color: var(--text-dim);
+  }
+  .rank.r1 { background: var(--gold); color: #1a1a1a; }
+  .rank.r2 { background: var(--silver); color: #1a1a1a; }
+  .rank.r3 { background: var(--bronze); color: #1a1a1a; }
+
+  .dept-info { flex: 1; min-width: 0; }
+  .dept-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dept-meta { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+  .bar-track {
+    height: 8px;
+    background: var(--panel-2);
+    border-radius: 999px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  }
+  .dept-avg {
+    text-align: right;
+    flex-shrink: 0;
+    min-width: 72px;
+  }
+  .dept-avg b { font-size: 1.1rem; }
+  .dept-avg span { display: block; font-size: 0.72rem; color: var(--text-dim); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-dim); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .empty { color: var(--text-dim); font-size: 0.9rem; text-align: center; padding: 20px 0; }
+  footer { text-align: center; color: var(--text-dim); font-size: 0.78rem; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🏃 Warga Sehat 2026</h1>
+    <p id="program-period">Memuatkan...</p>
+    <p id="last-updated"></p>
+  </header>
+
+  <div class="card">
+    <h2>🏆 Ranking Purata Langkah Harian</h2>
+    <div id="ranking-list"><div class="empty">Memuatkan data...</div></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Rekod Terkini</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr><th>Nama</th><th>Jabatan</th><th>Tarikh</th><th class="num">Langkah</th></tr>
+        </thead>
+        <tbody id="individu-body">
+          <tr><td colspan="4" class="empty">Memuatkan data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Data dikemaskini automatik setiap tengah malam &middot; MRSM Taiping</footer>
+</div>
+
+<script>
+async function load() {
+  try {
+    const res = await fetch('data/latest.json?_=' + Date.now());
+    const data = await res.json();
+    render(data);
+  } catch (e) {
+    document.getElementById('ranking-list').innerHTML = '<div class="empty">Gagal muatkan data.</div>';
+  }
+}
+
+function fmtDate(iso) {
+  if (!iso) return '-';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function render(data) {
+  const period = document.getElementById('program-period');
+  const prog = data.program || {};
+  period.textContent = prog.mula && prog.tamat
+    ? `${fmtDate(prog.mula)} – ${fmtDate(prog.tamat)}`
+    : '';
+
+  const updated = document.getElementById('last-updated');
+  updated.textContent = data.generated_at
+    ? 'Kemaskini terakhir: ' + new Date(data.generated_at).toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' })
+    : 'Belum ada kemaskini lagi';
+
+  const rankingEl = document.getElementById('ranking-list');
+  const ranking = data.ranking_jabatan || [];
+  if (ranking.length === 0) {
+    rankingEl.innerHTML = '<div class="empty">Belum ada data direkodkan.</div>';
+  } else {
+    const max = Math.max(...ranking.map(r => r.purata_harian), 1);
+    rankingEl.innerHTML = ranking.map(r => {
+      const rankClass = r.kedudukan === 1 ? 'r1' : r.kedudukan === 2 ? 'r2' : r.kedudukan === 3 ? 'r3' : '';
+      const pct = Math.max(4, Math.round((r.purata_harian / max) * 100));
+      return `
+        <div class="dept-row">
+          <div class="rank ${rankClass}">${r.kedudukan}</div>
+          <div class="dept-info">
+            <div class="dept-name">${r.jabatan}</div>
+            <div class="dept-meta">${r.bilangan_peserta} peserta &middot; ${r.jumlah_rekod} rekod</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          </div>
+          <div class="dept-avg"><b>${r.purata_harian.toLocaleString('ms-MY')}</b><span>langkah/hari</span></div>
+        </div>`;
+    }).join('');
+  }
+
+  const body = document.getElementById('individu-body');
+  const individuals = (data.rekod_individu || []).slice(0, 30);
+  if (individuals.length === 0) {
+    body.innerHTML = '<tr><td colspan="4" class="empty">Belum ada rekod.</td></tr>';
+  } else {
+    body.innerHTML = individuals.map(r => `
+      <tr>
+        <td>${r.nama}</td>
+        <td>${r.jabatan}</td>
+        <td>${fmtDate(r.tarikh)}</td>
+        <td class="num">${r.langkah.toLocaleString('ms-MY')}</td>
+      </tr>`).join('');
+  }
+}
+
+load();
+</script>
+</body>
+</html>
