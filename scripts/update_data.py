@@ -27,8 +27,11 @@ CSV_URL = os.environ.get(
 )
 
 # Tempoh rasmi program (tarikh dalam lajur "Tarikh Langkah" ikut tempoh ni)
-PROGRAM_START = datetime(2026, 11, 1)
-PROGRAM_END = datetime(2026, 11, 30)
+# NOTA: tempoh di bawah untuk PILOT TEST (21-27 Okt 2026, 16 peserta sampel).
+# TUKAR BALIK kepada 1-30 Nov 2026 sebelum program rasmi bermula, dan padam
+# baris data pilot dalam Google Sheets selepas pilot selesai.
+PROGRAM_START = datetime(2026, 10, 21)
+PROGRAM_END = datetime(2026, 10, 27)
 
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "latest.json")
 
